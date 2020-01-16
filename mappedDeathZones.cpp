@@ -46,7 +46,7 @@ public:
             return true;
         }
 
-        return std::find(affectedTeams.begin(), affectedTeams.end(), team) != affectedTeams.end();
+        return affectedTeams.find(team) != affectedTeams.end();
     }
 
     std::string getRandomSpawnZone()
@@ -190,7 +190,7 @@ void MappedDeathZones::Event(bz_EventData* eventData)
 
             for (auto &spawnZone : spawnZones)
             {
-                if (linkedSpawnZones.count(spawnZone.first) == 0)
+                if (linkedSpawnZones.find(spawnZone.first) == linkedSpawnZones.end())
                 {
                     bz_debugMessagef(0, "WARNING :: Mapped Death Zones :: Orphaned SPAWNZONE object with name: %s", spawnZone.first.c_str());
                 }
