@@ -155,11 +155,23 @@ void MappedDeathZones::Event(bz_EventData* eventData)
 
                 if (target.size() == 0)
                 {
+                    bz_debugMessagef(
+                        VERBOSITY_LEVEL,
+                        "WARNING :: Mapped Death Zones :: Player '%s' set to spawn at spawnzone with no name. Bailing out.",
+                        bz_getPlayerCallsign(data->playerID)
+                    );
+
                     return;
                 }
 
                 if (spawnZones.find(target) == spawnZones.end())
                 {
+                    bz_debugMessagef(
+                        VERBOSITY_LEVEL,
+                        "WARNING :: Mapped Death Zones :: Player '%s' set to spawn at nonexistent spawnzone: %s. Bailing out.",
+                        target.c_str()
+                    );
+
                     return;
                 }
 
@@ -188,6 +200,15 @@ void MappedDeathZones::Event(bz_EventData* eventData)
                     deathZone.second.doesAffectTeam(data->team) &&
                     deathZone.second.pointInZone(data->state.pos)
                 ) {
+                    bz_debugMessagef(
+                        VERBOSITY_LEVEL,
+                        "DEBUG :: Mapped Death Zones :: %s team player '%s' (#%d) died in '%s' deathzone.",
+                        bzu_GetTeamName(data->team),
+                        bz_getPlayerCallsign(data->playerID),
+                        data->playerID,
+                        deathZone.first.c_str()
+                    );
+
                     nextSpawnZone[data->playerID] = deathZone.second.getRandomSpawnZone();
 
                     break;
