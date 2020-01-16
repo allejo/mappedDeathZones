@@ -131,7 +131,7 @@ void MappedDeathZones::Event(bz_EventData* eventData)
                 }
 
                 float spawnPos[3];
-                bz_getSpawnPointWithin(spawnZones[target], spawnPos);
+                bz_getSpawnPointWithin(&spawnZones[target], spawnPos);
 
                 data->handled = true;
                 data->pos[0] = spawnPos[0];
