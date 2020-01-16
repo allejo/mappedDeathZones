@@ -28,6 +28,19 @@
 #include "bzfsAPI.h"
 #include "plugin_utils.h"
 
+// Define plug-in name
+const std::string PLUGIN_NAME = "Mapped Death Zones";
+
+// Define plug-in version numbering
+const int MAJOR = 1;
+const int MINOR = 0;
+const int REV = 0;
+const int BUILD = 1;
+const std::string SUFFIX = "DEV";
+
+// Define build settings
+const int VERBOSITY_LEVEL = 4;
+
 class DeathZone : public bz_CustomZoneObject
 {
 public:
@@ -95,7 +108,19 @@ BZ_PLUGIN(MappedDeathZones)
 
 const char* MappedDeathZones::Name()
 {
-    return "Mapped Death Zones";
+    static const char *pluginBuild;
+
+    if (!pluginBuild)
+    {
+        pluginBuild = bz_format("%s %d.%d.%d (%d)", PLUGIN_NAME.c_str(), MAJOR, MINOR, REV, BUILD);
+
+        if (!SUFFIX.empty())
+        {
+            pluginBuild = bz_format("%s - %s", pluginBuild, SUFFIX.c_str());
+        }
+    }
+
+    return pluginBuild;
 }
 
 void MappedDeathZones::Init(const char* config)
