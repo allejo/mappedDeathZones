@@ -20,6 +20,11 @@
  * THE SOFTWARE.
  */
 
+#include <algorithm>
+#include <map>
+#include <random>
+#include <set>
+
 #include "bzfsAPI.h"
 #include "plugin_utils.h"
 
@@ -31,8 +36,8 @@ public:
     }
 
     std::string name;
-    std::vector<bz_eTeamType> affectedTeams;
-    std::vector<std::string> spawnZones;
+    std::set<bz_eTeamType> affectedTeams;
+    std::set<std::string> spawnZones;
 
     bool doesAffectTeam(bz_eTeamType team)
     {
@@ -52,8 +57,11 @@ public:
         }
 
         int target = rand() % spawnZones.size();
+        auto it = spawnZones.begin();
 
-        return spawnZones.at(target);
+        std::advance(it, target);
+
+        return *it;
     }
 };
 
@@ -163,6 +171,33 @@ void MappedDeathZones::Event(bz_EventData* eventData)
         }
         break;
 
+        case bz_eWorldFinalized:
+        {
+            std::set<std::string> linkedSpawnZones;
+
+            for (auto &deathZone : deathZones)
+            {
+                for (auto name : deathZone.second.spawnZones)
+                {
+                    linkedSpawnZones.insert(name);
+
+                    if (spawnZones.find(name) == spawnZones.end())
+                    {
+                        bz_debugMessagef(0, "ERROR :: Mapped Death Zones :: There is no SPAWNZONE object with the name: %s", name.c_str());
+                    }
+                }
+            }
+
+            for (auto &spawnZone : spawnZones)
+            {
+                if (linkedSpawnZones.count(spawnZone.first) == 0)
+                {
+                    bz_debugMessagef(0, "WARNING :: Mapped Death Zones :: Orphaned SPAWNZONE object with name: %s", spawnZone.first.c_str());
+                }
+            }
+        }
+        break;
+
         default:
             break;
     }
@@ -194,17 +229,22 @@ bool MappedDeathZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* da
 
                 if (key == "TEAM")
                 {
-                    deathZone.affectedTeams.push_back((bz_eTeamType)atoi(nubs.get(1).c_str()));
+                    deathZone.affectedTeams.insert((bz_eTeamType)atoi(nubs.get(1).c_str()));
                 }
                 else if (key == "SPAWNZONE")
                 {
-                    deathZone.spawnZones.push_back(nubs.get(1).c_str());
+                    deathZone.spawnZones.insert(nubs.get(1).c_str());
                 }
                 else if (key == "NAME")
                 {
                     deathZone.name = nubs.get(1).c_str();
                 }
             }
+        }
+
+        if (deathZones.find(deathZone.name) != deathZones.end())
+        {
+            bz_debugMessagef(0, "ERROR :: Mapped Death Zones :: Conflicting DEATHZONE name: %s", deathZone.name.c_str());
         }
 
         deathZones[deathZone.name] = deathZone;
@@ -230,6 +270,11 @@ bool MappedDeathZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* da
                     spawnZone.name = nubs.get(1).c_str();
                 }
             }
+        }
+
+        if (spawnZones.find(spawnZone.name) != spawnZones.end())
+        {
+            bz_debugMessagef(0, "ERROR :: Mapped Death Zones :: Conflicting SPAWNZONE name: %s", spawnZone.name.c_str());
         }
 
         spawnZones[spawnZone.name] = spawnZone;
