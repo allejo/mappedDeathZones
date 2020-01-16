@@ -271,26 +271,19 @@ bool MappedDeathZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* da
 
             if (nubs.size() > 0)
             {
-                std::string rawKey = nubs.get(0);
-                std::string key = bz_toupper(rawKey.c_str());
+                std::string key = bz_toupper(nubs.get(0).c_str());
 
-                if (key == "NAME")
-                {
-                    bz_ApiString name = line;
-                    name.replaceAll(rawKey.c_str(), "");
-
-                    deathZone.name = bz_trim(name.c_str());
-                }
-                else if (key == "TEAM")
+                if (key == "TEAM")
                 {
                     deathZone.affectedTeams.insert((bz_eTeamType)atoi(nubs.get(1).c_str()));
                 }
                 else if (key == "SPAWNZONE")
                 {
-                    bz_ApiString name = line;
-                    name.replaceAll(rawKey.c_str(), "");
-
-                    deathZone.spawnZones.insert(bz_trim(name.c_str()));
+                    deathZone.spawnZones.insert(nubs.get(1).c_str());
+                }
+                else if (key == "NAME")
+                {
+                    deathZone.name = nubs.get(1).c_str();
                 }
             }
         }
@@ -316,15 +309,11 @@ bool MappedDeathZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* da
 
             if (nubs.size() > 0)
             {
-                std::string rawKey = nubs.get(0);
-                std::string key = bz_toupper(rawKey.c_str());
+                std::string key = bz_toupper(nubs.get(0).c_str());
 
                 if (key == "NAME")
                 {
-                    bz_ApiString name = line;
-                    name.replaceAll(rawKey.c_str(), "");
-
-                    spawnZone.name = bz_trim(name.c_str());
+                    spawnZone.name = nubs.get(1).c_str();
                 }
             }
         }
