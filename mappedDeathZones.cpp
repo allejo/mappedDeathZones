@@ -23,26 +23,48 @@
 #include "bzfsAPI.h"
 #include "plugin_utils.h"
 
-class DeathzoneZone : public bz_CustomZoneObject
+class DeathZone : public bz_CustomZoneObject
 {
 public:
-    DeathzoneZone() : bz_CustomZoneObject()
+    DeathZone() : bz_CustomZoneObject()
     {
     }
 
-    bz_eTeamType team_value;
-    std::string spawnzone_value;
-    std::string name_value;
+    std::string name;
+    std::vector<bz_eTeamType> affectedTeams;
+    std::vector<std::string> spawnZones;
+
+    bool doesAffectTeam(bz_eTeamType team)
+    {
+        if (affectedTeams.size() == 0)
+        {
+            return true;
+        }
+
+        return std::find(affectedTeams.begin(), affectedTeams.end(), team) != affectedTeams.end();
+    }
+
+    std::string getRandomSpawnZone()
+    {
+        if (spawnZones.size() == 0)
+        {
+            return "";
+        }
+
+        int target = rand() % spawnZones.size();
+
+        return spawnZones.at(target);
+    }
 };
 
-class SpawnzoneZone : public bz_CustomZoneObject
+class SpawnZone : public bz_CustomZoneObject
 {
 public:
-    SpawnzoneZone() : bz_CustomZoneObject()
+    SpawnZone() : bz_CustomZoneObject()
     {
     }
 
-    std::string name_name;
+    std::string name;
 };
 
 class MappedDeathZones : public bz_Plugin, public bz_CustomMapObjectHandler
@@ -53,6 +75,12 @@ public:
     virtual void Cleanup();
     virtual void Event(bz_EventData* eventData);
     virtual bool MapObject(bz_ApiString object, bz_CustomMapObjectInfo* data);
+
+private:
+    std::map<std::string, DeathZone> deathZones;
+    std::map<std::string, SpawnZone> spawnZones;
+
+    std::map<int, std::string> nextSpawnZone;
 };
 
 BZ_PLUGIN(MappedDeathZones)
@@ -64,7 +92,9 @@ const char* MappedDeathZones::Name()
 
 void MappedDeathZones::Init(const char* config)
 {
+    Register(bz_eGetPlayerSpawnPosEvent);
     Register(bz_ePlayerDieEvent);
+    Register(bz_eWorldFinalized);
 
     bz_registerCustomMapObject("DEATHZONE", this);
     bz_registerCustomMapObject("SPAWNZONE", this);
@@ -82,22 +112,54 @@ void MappedDeathZones::Event(bz_EventData* eventData)
 {
     switch (eventData->eventType)
     {
+        case bz_eGetPlayerSpawnPosEvent:
+        {
+            bz_GetPlayerSpawnPosEventData_V1* data = (bz_GetPlayerSpawnPosEventData_V1*)eventData;
+
+            if (nextSpawnZone.find(data->playerID) != nextSpawnZone.end())
+            {
+                std::string target = nextSpawnZone[data->playerID];
+
+                if (target.size() == 0)
+                {
+                    return;
+                }
+
+                if (spawnZones.find(target) == spawnZones.end())
+                {
+                    return;
+                }
+
+                float spawnPos[3];
+                bz_getSpawnPointWithin(spawnZones[target], spawnPos);
+
+                data->handled = true;
+                data->pos[0] = spawnPos[0];
+                data->pos[1] = spawnPos[1];
+                data->pos[2] = spawnPos[2];
+
+                nextSpawnZone.erase(data->playerID);
+            }
+        }
+        break;
+
         case bz_ePlayerDieEvent:
         {
             // This event is called each time a tank is killed.
             bz_PlayerDieEventData_V2* data = (bz_PlayerDieEventData_V2*)eventData;
 
-            // Data
-            // ----
-            // (int)                  playerID           - ID of the player who was killed.
-            // (bz_eTeamType)         team               - The team the killed player was on.
-            // (int)                  killerID           - The owner of the shot that killed the player, or BZ_SERVER for server side kills
-            // (bz_eTeamType)         killerTeam         - The team the owner of the shot was on.
-            // (bz_ApiString)         flagKilledWith     - The flag name the owner of the shot had when the shot was fired.
-            // (int)                  flagHeldWhenKilled - The ID of the flag the victim was holding when they died.
-            // (int)                  shotID             - The shot ID that killed the player, if the player was not killed by a shot, the id will be -1.
-            // (bz_PlayerUpdateState) state              - The state record for the killed player at the time of the event
-            // (double)               eventTime          - Time of the event on the server.
+
+            for (auto &deathZone : deathZones)
+            {
+                if (
+                    deathZone.second.doesAffectTeam(data->team) &&
+                    deathZone.second.pointInZone(data->state.pos)
+                ) {
+                    nextSpawnZone[data->playerID] = deathZone.second.getRandomSpawnZone();
+
+                    break;
+                }
+            }
         }
         break;
 
@@ -116,8 +178,8 @@ bool MappedDeathZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* da
 
     if (object == "DEATHZONE")
     {
-        DeathzoneZone deathzoneZone;
-        deathzoneZone.handleDefaultOptions(data);
+        DeathZone deathZone;
+        deathZone.handleDefaultOptions(data);
 
         for (unsigned int i = 0; i < data->data.size(); i++)
         {
@@ -132,23 +194,25 @@ bool MappedDeathZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* da
 
                 if (key == "TEAM")
                 {
-                    deathzoneZone.team_value = (bz_eTeamType)atoi(nubs.get(1).c_str());
+                    deathZone.affectedTeams.push_back((bz_eTeamType)atoi(nubs.get(1).c_str()));
                 }
                 else if (key == "SPAWNZONE")
                 {
-                    deathzoneZone.spawnzone_value = nubs.get(1).c_str();
+                    deathZone.spawnZones.push_back(nubs.get(1).c_str());
                 }
                 else if (key == "NAME")
                 {
-                    deathzoneZone.name_value = nubs.get(1).c_str();
+                    deathZone.name = nubs.get(1).c_str();
                 }
             }
         }
+
+        deathZones[deathZone.name] = deathZone;
     }
     else if (object == "SPAWNZONE")
     {
-        SpawnzoneZone spawnzoneZone;
-        spawnzoneZone.handleDefaultOptions(data);
+        SpawnZone spawnZone;
+        spawnZone.handleDefaultOptions(data);
 
         for (unsigned int i = 0; i < data->data.size(); i++)
         {
@@ -163,13 +227,13 @@ bool MappedDeathZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* da
 
                 if (key == "NAME")
                 {
-                    spawnzoneZone.name_name = nubs.get(1).c_str();
+                    spawnZone.name = nubs.get(1).c_str();
                 }
             }
         }
-    }
 
-    // @TODO Save your custom map objects to your class
+        spawnZones[spawnZone.name] = spawnZone;
+    }
 
     return true;
 }
