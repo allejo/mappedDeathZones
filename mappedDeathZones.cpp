@@ -123,7 +123,7 @@ const char* MappedDeathZones::Name()
     return pluginBuild;
 }
 
-void MappedDeathZones::Init(const char* config)
+void MappedDeathZones::Init(const char* /*config*/)
 {
     Register(bz_eGetPlayerSpawnPosEvent);
     Register(bz_ePlayerDieEvent);
