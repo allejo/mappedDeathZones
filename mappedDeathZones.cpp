@@ -252,7 +252,7 @@ void MappedDeathZones::Event(bz_EventData* eventData)
 bool MappedDeathZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* data)
 {
     // Note, this value will be in uppercase
-    if (!data || object != "DEATHZONE" || object != "SPAWNZONE")
+    if (!data || (object != "DEATHZONE" && object != "SPAWNZONE"))
     {
         return false;
     }
