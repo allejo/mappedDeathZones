@@ -1,0 +1,104 @@
+options
+  -mp 5,5,5,0,0,10
+  -set _worldSize 300
+end
+
+#
+# Red area
+#
+
+# Red death zone
+meshbox
+  name red_box
+  position 0 20 0
+  size 10 10 5
+  color 1 0 0 0.5
+  drivethrough
+end
+
+deathzone
+  name red_dz
+  position 0 20 0
+  size 10 10 5
+  team 1
+  spawnzone red_sz
+end
+
+# Red spawn zone
+meshbox
+  position 0 20 20
+  size 10 10 1
+  color 1 0 0 1
+end
+
+spawnzone
+  name red_sz
+  position 0 20 20
+  size 10 10 5
+end
+
+#
+# Green area
+#
+
+# Green death zone
+meshbox
+  name green_box
+  position 0 -20 0
+  size 10 10 5
+  drivethrough
+  color 0 1 0 0.5
+end
+
+deathzone
+  name green_dz
+  position 0 -20 0
+  size 10 10 5
+  team 2
+  spawnzone green_sz
+end
+
+# Green spawn zone
+meshbox
+  position 0 -20 20
+  size 10 10 1
+  color 0 1 0 1
+end
+
+spawnzone
+  name green_sz
+  position 0 -20 20
+  size 10 10 5
+end
+
+#
+# All team death zone
+#
+
+# Multi death zone
+meshbox
+  position 30 0 0
+  size 10 10 5
+  color 1 1 0 0.5
+  drivethrough
+end
+
+deathzone
+  name all_dz
+  position 30 0 0
+  size 10 10 5
+  spawnzone all_sz
+end
+
+# Multi spawn zone
+meshbox
+  position 30 0 20
+  size 10 10 1
+  color 1 1 0 1
+end
+
+spawnzone
+  name all_sz
+  position 30 0 20
+  size 10 10 5
+end
