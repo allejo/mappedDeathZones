@@ -33,8 +33,8 @@ deathzone
   size 5 5 5
   rotation 0
 
-  name Red Base
-  spawnzone Blue Spawn Zone
+  name red_base
+  spawnzone blue_spawn_zone
   team 3
 end
 
@@ -43,7 +43,7 @@ spawnzone
   size 5 5 5
   rotation 0
 
-  name Blue Spawn Zone
+  name blue_spawn_zone
 end
 ```
 
