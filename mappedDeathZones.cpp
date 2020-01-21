@@ -35,8 +35,8 @@ const std::string PLUGIN_NAME = "Mapped Death Zones";
 const int MAJOR = 1;
 const int MINOR = 0;
 const int REV = 0;
-const int BUILD = 1;
-const std::string SUFFIX = "DEV";
+const int BUILD = 15;
+const std::string SUFFIX = "STABLE";
 
 // Define build settings
 const int VERBOSITY_LEVEL = 4;
