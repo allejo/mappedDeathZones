@@ -35,7 +35,7 @@ const std::string PLUGIN_NAME = "Mapped Death Zones";
 const int MAJOR = 1;
 const int MINOR = 0;
 const int REV = 1;
-const int BUILD = 16;
+const int BUILD = 17;
 const std::string SUFFIX = "DEV";
 
 // Define build settings
@@ -176,12 +176,23 @@ void MappedDeathZones::Event(bz_EventData* eventData)
                 }
 
                 float spawnPos[3];
-                bz_getSpawnPointWithin(&spawnZones[target], spawnPos);
+                bool couldFindPos = bz_getSpawnPointWithin(&spawnZones[target], spawnPos);
 
-                data->handled = true;
-                data->pos[0] = spawnPos[0];
-                data->pos[1] = spawnPos[1];
-                data->pos[2] = spawnPos[2];
+                if (couldFindPos)
+                {
+                    data->handled = true;
+                    data->pos[0] = spawnPos[0];
+                    data->pos[1] = spawnPos[1];
+                    data->pos[2] = spawnPos[2];
+                }
+                else
+                {
+                    bz_debugMessagef(
+                        0,
+                        "ERROR :: Mapped Death Zones :: A safe spawn position could not be found in spawnzone: %s. Bailing out.",
+                        target.c_str()
+                    );
+                }
 
                 nextSpawnZone.erase(data->playerID);
             }
