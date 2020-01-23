@@ -65,6 +65,8 @@ Properties:
 
 - `name` (required) - This is a unique name amongst *all* `spawnzone`s in a map.
 
+> **Warning:** These objects should not be placed outside the world boundaries (partially or completely). Doing so will lead to unexpected/unwanted behavior with regards to player spawns.
+
 ## License
 
 [MIT](LICENSE.md)
