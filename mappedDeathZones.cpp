@@ -34,9 +34,9 @@ const std::string PLUGIN_NAME = "Mapped Death Zones";
 // Define plug-in version numbering
 const int MAJOR = 1;
 const int MINOR = 0;
-const int REV = 1;
-const int BUILD = 21;
-const std::string SUFFIX = "STABLE";
+const int REV = 2;
+const int BUILD = 22;
+const std::string SUFFIX = "DEV";
 
 // Define build settings
 const int VERBOSITY_LEVEL = 4;
